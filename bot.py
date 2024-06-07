@@ -22,22 +22,15 @@ if prompt := st.chat_input("What is up?"):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    with st.chat_message("assistant"):
-        # Use the new API method for streaming responses
-        response = openai.ChatCompletion.create(
-            model=st.session_state["openai_model"],
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
+    with st.spinner("Thinking..."):
+        assistant_response = openai.Completion.create(
+            engine=st.session_state["openai_model"],
+            prompt='\n'.join([f"{m['role']}: {m['content']}" for m in st.session_state.messages]),
+            max_tokens=150
+        ).choices[0].text.strip()
 
-        assistant_response = ""
-        for chunk in response:
-            if 'choices' in chunk:
-                chunk_message = chunk['choices'][0]['delta'].get('content', '')
-                assistant_response += chunk_message
-                st.markdown(chunk_message)
+    with st.chat_message("assistant"):
+        st.markdown(assistant_response)
 
     st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+
