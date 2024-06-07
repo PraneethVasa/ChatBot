@@ -8,7 +8,7 @@ api_key = "sk-proj-VCJWvAqhCt4mn8PmqqwdT3BlbkFJh7lT7CYpC14JmZ09hJbI"
 openai.api_key = api_key
 
 if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-3.5-turbo"
+    st.session_state["openai_model"] = "text-davinci-003"  # Update with your preferred model
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -22,14 +22,14 @@ if prompt := st.chat_input("What is up?"):
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    with st.spinner("Thinking..."):
+        response = openai.Completion.create(
+            engine=st.session_state["openai_model"],
+            prompt='\n'.join([f"{m['role']}: {m['content']}" for m in st.session_state.messages]),
+            max_tokens=150
+        ).choices[0].text.strip()
+
     with st.chat_message("assistant"):
-        stream = openai.ChatCompletion.create(
-            model=st.session_state["openai_model"],
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
-        response = st.write_stream(stream)
+        st.markdown(response)
+
     st.session_state.messages.append({"role": "assistant", "content": response})
